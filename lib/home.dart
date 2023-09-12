@@ -1,8 +1,11 @@
 import 'dart:developer';
 
 import 'package:chatgpt_clone/feature_box.dart';
+import 'package:chatgpt_clone/openai_service.dart';
 import 'package:chatgpt_clone/pallete.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -18,6 +21,7 @@ class _HomeState extends State<Home> {
   final speechToText = SpeechToText();
 
   String lastWords = '';
+  OpenAIService openAIService = OpenAIService();
   @override
   void initState() {
     // TODO: implement initState
@@ -116,15 +120,21 @@ class _HomeState extends State<Home> {
         floatingActionButton: FloatingActionButton(
           backgroundColor: Pallete.firstSuggestionBoxColor,
           onPressed: () async {
-            if (await speechToText.hasPermission &&
-                speechToText.isNotListening) {
-              await startListening();
-            } else if (speechToText.isListening) {
-              await stopListening();
-            } else {
-              initSpeechToText();
+            try {
+              if (await speechToText.hasPermission &&
+                  speechToText.isNotListening) {
+                await startListening();
+                log("listenign");
+              } else if (speechToText.isListening) {
+                openAIService.isArtPromptAPI(lastWords);
+
+                await stopListening();
+              } else {
+                initSpeechToText();
+              }
+            } catch (e) {
+              Fluttertoast.showToast(msg: e.toString());
             }
-            log(lastWords);
           },
           child: Icon(Icons.mic),
         ));
